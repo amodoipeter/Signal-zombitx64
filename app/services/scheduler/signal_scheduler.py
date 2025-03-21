@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
+from typing import AsyncGenerator
 
 from app.core.config import settings
 from app.models.signal import Signal, SignalStatus, SignalType
@@ -12,6 +13,7 @@ from app.models.user import User
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.core.ai.signal_generator import AISignalGenerator
 from app.services.telegram_bot.bot import telegram_bot_service
+# Discord reference kept but not used
 from app.services.discord.bot import discord_bot_service
 from app.services.analytics.performance import performance_analytics
 from app.core.market_data.fetcher import MarketDataFetcher
@@ -27,10 +29,10 @@ class SignalScheduler:
         self.signal_generator = AISignalGenerator()
         self.running = False
         self.jobs = []
-    
-    async def get_db(self) -> AsyncSession:
+    async def get_db(self) -> AsyncGenerator[AsyncSession, None]:
         """Get database session."""
         async with AsyncSessionLocal() as session:
+            yield session
             yield session
     
     async def start(self):
@@ -94,25 +96,21 @@ class SignalScheduler:
                 for signal in signals:
                     await db.refresh(signal)
                 
-                # Get all active subscribed users
+                # Get all active subscribed users with Telegram
                 result = await db.execute(
                     select(User).join(Subscription).filter(
+                        User.telegram_chat_id.isnot(None),
                         Subscription.status == SubscriptionStatus.ACTIVE,
                         Subscription.end_date > datetime.utcnow()
                     ).distinct()
                 )
                 users = result.scalars().all()
                 
-                # Send signals to users
+                # Send signals to users via Telegram only
                 for signal in signals:
                     for user in users:
-                        # Send to Telegram if user has Telegram ID
                         if user.telegram_chat_id:
                             await telegram_bot_service.send_signal(user, signal)
-                        
-                        # Send to Discord if user has Discord ID
-                        if user.discord_id:
-                            await discord_bot_service.send_signal(user, signal)
         
         except Exception as e:
             logger.error(f"Error generating signals: {str(e)}")
@@ -174,22 +172,20 @@ class SignalScheduler:
                         await db.commit()
                         await db.refresh(signal)
                         
-                        # Get all subscribed users
+                        # Get all subscribed users with Telegram
                         user_result = await db.execute(
                             select(User).join(Subscription).filter(
+                                User.telegram_chat_id.isnot(None),
                                 Subscription.status == SubscriptionStatus.ACTIVE,
                                 Subscription.end_date > datetime.utcnow()
                             ).distinct()
                         )
                         users = user_result.scalars().all()
                         
-                        # Send updates to users
+                        # Send updates to users via Telegram only
                         for user in users:
                             if user.telegram_chat_id:
                                 await telegram_bot_service.send_signal_update(user, signal, signal.status)
-                            
-                            if user.discord_id:
-                                await discord_bot_service.send_signal_update(user, signal, signal.status)
                 
                 # Close market fetcher connection
                 await market_fetcher.close()
@@ -350,13 +346,9 @@ class SignalScheduler:
                     
                     # If no other active subscriptions, remove from groups
                     if not other_active_subs:
-                        # Remove from Telegram groups
+                        # Remove from Telegram groups only
                         if user.telegram_chat_id:
                             await telegram_bot_service.remove_expired_user(user)
-                        
-                        # Remove from Discord groups
-                        if user.discord_id:
-                            await discord_bot_service.remove_expired_user(user)
                             
                         # Send notification about subscription expiry
                         await self._send_expiry_notification(user)
@@ -378,6 +370,7 @@ class SignalScheduler:
                 "Thank you for being part of ZombitX64 Trading Signals!"
             )
             
+            # Only send via Telegram
             if user.telegram_chat_id:
                 await telegram_bot_service.send_expiry_notification(user, message)
                 
