@@ -168,7 +168,7 @@ def visualize_indicators(df: pd.DataFrame, symbol: str, timeframe: str):
 async def main():
     """Main function to demonstrate indicator generation and visualization."""
     # List of symbols and timeframes to analyze
-    symbols = ["BTCUSDT", "ETHUSDT", "EURUSD"]
+    symbols = ["BTCUSDT", "ETHUSDT", "EURUSD", "XAUUSD"]  # Added XAUUSD (Gold)
     timeframes = ["1h", "4h"]
     
     for symbol in symbols:
