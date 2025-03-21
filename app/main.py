@@ -7,10 +7,13 @@ Main application entry point for the AI Signal Provider + Telegram Bot.
 
 import logging
 import os
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+import asyncio
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
@@ -64,6 +67,19 @@ app.include_router(users_router.router, prefix="/api/users", tags=["Users"])
 app.include_router(reports_router.router, prefix="/api/reports", tags=["Performance Reports"])
 app.include_router(redeem_router.router, prefix="/api/redeem", tags=["Redeem Codes"])  # New router
 
+# Error handling
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An unexpected error occurred. Please try again later."}
+    )
+
+# Discord and Telegram bot tasks
+discord_task: Optional[asyncio.Task] = None
+telegram_task: Optional[asyncio.Task] = None
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database and start services."""
@@ -73,12 +89,21 @@ async def startup_event():
     await init_db()
     logger.info("Database initialized")
     
-    # Start Telegram bot
-    try:
-        await telegram_bot_service.setup()
-        logger.info("Telegram bot initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize Telegram bot: {str(e)}")
+    # Start Telegram bot only
+    global telegram_task
+    if os.getenv("TELEGRAM_BOT_TOKEN"):
+        telegram_task = asyncio.create_task(telegram_bot_service.start_polling())
+        logger.info("Telegram bot started")
+    else:
+        logger.warning("TELEGRAM_BOT_TOKEN not set, Telegram bot not started")
+    
+    # Start Discord bot in a separate task if configured
+    global discord_task
+    if os.getenv("DISCORD_BOT_TOKEN"):
+        discord_task = asyncio.create_task(start_discord_bot())
+        logger.info("Discord bot task created")
+    else:
+        logger.warning("DISCORD_BOT_TOKEN not set, Discord bot not started")
     
     # Start scheduler
     try:
@@ -88,6 +113,14 @@ async def startup_event():
         logger.error(f"Failed to start signal scheduler: {str(e)}")
     
     logger.info("Application startup complete")
+
+async def start_discord_bot():
+    """Start Discord bot in an exception-safe manner."""
+    try:
+        logger.info("Starting Discord bot")
+        await discord_bot_service.start()
+    except Exception as e:
+        logger.error(f"Error starting Discord bot: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -100,6 +133,24 @@ async def shutdown_event():
         logger.info("Signal scheduler stopped")
     except Exception as e:
         logger.error(f"Error stopping signal scheduler: {str(e)}")
+    
+    # Stop Telegram bot
+    if telegram_task:
+        await telegram_bot_service.stop()
+        telegram_task.cancel()
+        try:
+            await telegram_task
+        except asyncio.CancelledError:
+            pass
+    
+    # Stop Discord bot
+    if discord_task:
+        await discord_bot_service.close()
+        discord_task.cancel()
+        try:
+            await discord_task
+        except asyncio.CancelledError:
+            pass
     
     logger.info("Application shutdown complete")
 
