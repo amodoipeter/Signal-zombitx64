@@ -91,7 +91,7 @@ class DiscordBotService:
             
             embed.add_field(
                 name="Need Help?",
-                value="Contact support@zombitx64signals.com or join our [Support Server](https://discord.gg/zombitx64)",
+                value="Contact zombitx64@gmail.com or join our [Support Server](https://discord.gg/zombitx64)",
                 inline=False
             )
             embed.set_footer(text="ZombitX64 Trading Signals")
