@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from typing import AsyncGenerator
 
 from app.core.config import settings
 
@@ -21,11 +22,11 @@ async def init_db():
     async with async_engine.begin() as conn:
         # await conn.run_sync(Base.metadata.drop_all)  # Uncomment for clean start
         await conn.run_sync(Base.metadata.create_all)
-
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting async DB session."""
     async with AsyncSessionLocal() as session:
         try:
             yield session
         finally:
+            await session.close()
             await session.close()
