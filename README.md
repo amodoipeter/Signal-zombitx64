@@ -1,11 +1,11 @@
 # ZombitX64 AI Signal Provider
 
-An AI-powered trading signal provider system with Telegram/Discord integration and subscription model.
+An AI-powered trading signal provider system with Telegram integration and subscription model.
 
 ## 🧠 Features
 
 - **AI Signal Generation**: Uses machine learning models to analyze market data and generate trading signals
-- **Bot Integration**: Sends signals directly to users via Telegram and Discord bots
+- **Telegram Bot Integration**: Sends signals directly to users via Telegram
 - **Subscription Model**: Monetization through Stripe payment processing or redeem codes
 - **Real-time Updates**: Notifies users when TP or SL are hit
 - **Admin Dashboard**: Manage signals, users, and subscriptions
@@ -22,7 +22,6 @@ graph TD
     C -->|Creates signals| D[Signal Database]
     D -->|Retrieves signals| E[Notification Service]
     E -->|Sends signals| F[Telegram Bot]
-    E -->|Sends signals| G[Discord Bot]
     H[Users] -->|Subscribe| I[Payment Service]
     I -->|Payment confirmation| J[Subscription DB]
     J -->|Access control| E
@@ -94,7 +93,7 @@ sequenceDiagram
     Bot-->>User: Welcome message
 ```
 
-## 📱 Telegram/Discord Bot Integration
+## 📱 Telegram Bot Integration
 
 ```mermaid
 flowchart TD
@@ -116,7 +115,7 @@ flowchart TD
 - **Database**: PostgreSQL
 - **AI Models**: NumPy, Pandas, TensorFlow/PyTorch
 - **Market Data**: Integration with Binance API
-- **Bots**: Telegram Bot API (aiogram), Discord.py
+- **Bots**: Telegram Bot API (aiogram)
 - **Payments**: Stripe API
 - **Deployment**: Docker, Kubernetes
 
@@ -126,7 +125,6 @@ flowchart TD
 - PostgreSQL
 - Binance API Key
 - Telegram Bot Token
-- Discord Bot Token
 - Stripe API Key
 
 ## 🛠️ Installation
@@ -227,12 +225,7 @@ flowchart TD
 - `/subscription` - Check subscription status
 - `/weekly_report` - Request weekly performance report
 - `/monthly_report` - Request monthly performance report
-
-### Discord Bot
-- `/start` - Start the bot and register
-- `/help` - Show help information
-- `/signals` - Get latest signals
-- `/subscription` - Check subscription status
+- `/redeem` - Redeem a subscription code
 
 ## 🧪 Testing
 
