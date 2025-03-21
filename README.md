@@ -1,13 +1,14 @@
 # ZombitX64 AI Signal Provider
 
-An AI-powered trading signal provider system with Telegram integration and subscription model.
+An AI-powered trading signal provider system with Telegram and Discord integration and subscription model.
 
 ## 🧠 Features
 
 - **AI Signal Generation**: Uses machine learning models to analyze market data and generate trading signals
 - **Telegram Bot Integration**: Sends signals directly to users via Telegram
+- **Discord Bot Integration**: Sends trading signals and updates directly to Discord channels
 - **Subscription Model**: Monetization through Stripe payment processing or redeem codes
-- **Real-time Updates**: Notifies users when TP or SL are hit
+- **Real-time Updates**: Notifies users when TP or SL are hit via Telegram and Discord
 - **Admin Dashboard**: Manage signals, users, and subscriptions
 - **Performance Analytics**: Weekly and monthly win rate reports sent to subscribers
 - **Redeem Codes**: Generate subscription codes with predefined durations (7, 15, 30 days or forever)
@@ -22,6 +23,7 @@ graph TD
     C -->|Creates signals| D[Signal Database]
     D -->|Retrieves signals| E[Notification Service]
     E -->|Sends signals| F[Telegram Bot]
+    E -->|Sends signals| G[Discord Bot]
     H[Users] -->|Subscribe| I[Payment Service]
     I -->|Payment confirmation| J[Subscription DB]
     J -->|Access control| E
@@ -93,7 +95,11 @@ sequenceDiagram
     Bot-->>User: Welcome message
 ```
 
-## 📱 Telegram Bot Integration
+## 📱 Bots Integration
+
+The system sends notifications through both Telegram and Discord.
+
+### Telegram Bot Integration
 
 ```mermaid
 flowchart TD
@@ -108,6 +114,19 @@ flowchart TD
     J -->|Monthly Report| K
     K -->|Format Report| L[Send to Subscribers]
 ```
+
+- `/start` - Start the bot and register
+- `/help` - Show help information
+- `/signals` - Get latest signals
+- `/subscription` - Check subscription status
+- `/weekly_report` - Request weekly performance report
+- `/monthly_report` - Request monthly performance report
+- `/redeem` - Redeem a subscription code
+
+### Discord Bot Integration
+- Receives real-time signals and updates directly in designated Discord channels
+- Displays rich embeds with signal details and performance reports
+- Admin commands for broadcasting messages and managing notifications
 
 ## 🚀 Tech Stack
 
