@@ -73,7 +73,7 @@ class SignalScheduler:
         try:
             # Define symbols and timeframes
             crypto_symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "DOGEUSDT"]
-            forex_symbols = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD"]
+            forex_symbols = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "XAUUSD"]  # Added XAUUSD
             timeframes = ["1h", "4h", "1d"]
             
             # Generate signals
