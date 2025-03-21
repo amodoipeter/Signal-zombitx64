@@ -13,10 +13,8 @@ python-binance>=1.0.17
 tensorflow>=2.12.0
 scikit-learn>=1.2.2
 
-# Telegram/Discord Bot
-python-telegram-bot>=13.15
+# Discord Bot
 discord.py==2.2.3
-aiogram==2.25.1
 
 # Database
 sqlalchemy==1.4.48

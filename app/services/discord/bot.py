@@ -11,7 +11,6 @@ import os
 from app.core.config import settings
 from app.models.signal import Signal, SignalStatus, SignalType
 from app.models.user import User
-from app.services.telegram_bot.chart_generator import generate_chart_image
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,15 @@ class DiscordBotService:
         """Set up bot commands."""
         @self.bot.event
         async def on_ready():
+            # Add admin command group
+            admin_commands = [
+                types.BotCommand("remove_telegram", "Remove user from Telegram groups (Admin only)")
+            ]
+            if self.admin_channel_id:
+                await self.bot.add_application_commands_to_guild(
+                    admin_commands,
+                    guild_id=int(self.guild_id)
+                )
             logger.info(f"Discord bot logged in as {self.bot.user}")
             await self.bot.change_presence(activity=discord.Activity(
                 type=discord.ActivityType.watching,
@@ -85,6 +93,14 @@ class DiscordBotService:
                 ("`/report monthly`", "Get monthly performance report"),
                 ("`/redeem CODE`", "Redeem a subscription code")
             ]
+
+            # Add admin commands if user has administrator permissions
+            if ctx.author.guild_permissions.administrator:
+                admin_commands = [
+                    ("`/remove_telegram USER_ID`", "Remove user from Telegram groups (Admin only)")
+                ]
+                commands_info.extend(admin_commands)
+                embed.add_field(name="🔒 Admin Commands", value="The following commands are available to administrators only:", inline=False)
             
             for cmd, desc in commands_info:
                 embed.add_field(name=cmd, value=desc, inline=False)

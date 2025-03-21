@@ -55,7 +55,6 @@ from app.api.routes import (
 )
 
 # Import services
-from app.services.telegram_bot.bot import telegram_bot_service
 from app.services.discord.bot import discord_bot_service
 from app.services.scheduler.signal_scheduler import signal_scheduler
 
@@ -76,9 +75,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "An unexpected error occurred. Please try again later."}
     )
 
-# Discord and Telegram bot tasks
+# Discord bot task
 discord_task: Optional[asyncio.Task] = None
-telegram_task: Optional[asyncio.Task] = None
 
 @app.on_event("startup")
 async def startup_event():
@@ -88,14 +86,6 @@ async def startup_event():
     # Initialize database
     await init_db()
     logger.info("Database initialized")
-    
-    # Start Telegram bot only
-    global telegram_task
-    if os.getenv("TELEGRAM_BOT_TOKEN"):
-        telegram_task = asyncio.create_task(telegram_bot_service.start_polling())
-        logger.info("Telegram bot started")
-    else:
-        logger.warning("TELEGRAM_BOT_TOKEN not set, Telegram bot not started")
     
     # Start Discord bot in a separate task if configured
     global discord_task
@@ -133,15 +123,6 @@ async def shutdown_event():
         logger.info("Signal scheduler stopped")
     except Exception as e:
         logger.error(f"Error stopping signal scheduler: {str(e)}")
-    
-    # Stop Telegram bot
-    if telegram_task:
-        await telegram_bot_service.stop()
-        telegram_task.cancel()
-        try:
-            await telegram_task
-        except asyncio.CancelledError:
-            pass
     
     # Stop Discord bot
     if discord_task:

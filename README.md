@@ -1,14 +1,13 @@
 # ZombitX64 AI Signal Provider
 
-An AI-powered trading signal provider system with Telegram and Discord integration and subscription model.
+An AI-powered trading signal provider system with Discord integration and subscription model.
 
 ## 🧠 Features
 
 - **AI Signal Generation**: Uses machine learning models to analyze market data and generate trading signals
-- **Telegram Bot Integration**: Sends signals directly to users via Telegram
 - **Discord Bot Integration**: Sends trading signals and updates directly to Discord channels
 - **Subscription Model**: Monetization through Stripe payment processing or redeem codes
-- **Real-time Updates**: Notifies users when TP or SL are hit via Telegram and Discord
+- **Real-time Updates**: Notifies users when TP or SL are hit via Discord
 - **Admin Dashboard**: Manage signals, users, and subscriptions
 - **Performance Analytics**: Weekly and monthly win rate reports sent to subscribers
 - **Redeem Codes**: Generate subscription codes with predefined durations (7, 15, 30 days or forever)
@@ -22,9 +21,8 @@ graph TD
     B -->|Processed data| C[AI Signal Generator]
     C -->|Creates signals| D[Signal Database]
     D -->|Retrieves signals| E[Notification Service]
-    E -->|Sends signals| F[Telegram Bot]
-    E -->|Sends signals| G[Discord Bot]
-    H[Users] -->|Subscribe| I[Payment Service]
+    E -->|Sends signals| F[Discord Bot]
+    G[Users] -->|Subscribe| H[Payment Service]
     I -->|Payment confirmation| J[Subscription DB]
     J -->|Access control| E
     D -->|Analyzes| K[Performance Analytics]
@@ -95,35 +93,7 @@ sequenceDiagram
     Bot-->>User: Welcome message
 ```
 
-## 📱 Bots Integration
-
-The system sends notifications through both Telegram and Discord.
-
-### Telegram Bot Integration
-
-```mermaid
-flowchart TD
-    A[Signal Generated] -->|New Signal| B{Is User Subscribed?}
-    B -->|Yes| C[Format Signal Message]
-    B -->|No| D[Ignore or Send Teaser]
-    C -->|Generate Chart Image| E[Prepare Media]
-    C -->|Format Text| F[Prepare Message]
-    E & F -->|Combined| G[Send to User]
-    H[Signal Update] -->|TP/SL Hit| I[Send Update Notification]
-    J[Schedule] -->|Weekly Report| K[Generate Win Rate Report]
-    J -->|Monthly Report| K
-    K -->|Format Report| L[Send to Subscribers]
-```
-
-- `/start` - Start the bot and register
-- `/help` - Show help information
-- `/signals` - Get latest signals
-- `/subscription` - Check subscription status
-- `/weekly_report` - Request weekly performance report
-- `/monthly_report` - Request monthly performance report
-- `/redeem` - Redeem a subscription code
-
-### Discord Bot Integration
+## 📱 Discord Bot Integration
 - Receives real-time signals and updates directly in designated Discord channels
 - Displays rich embeds with signal details and performance reports
 - Admin commands for broadcasting messages and managing notifications
@@ -136,7 +106,61 @@ flowchart TD
 - **Market Data**: Integration with Binance API
 - **Bots**: Telegram Bot API (aiogram)
 - **Payments**: Stripe API
-- **Deployment**: Docker, Kubernetes
+- **Deployment**: Docker, Kubernetes, Railway.app
+
+## 🚂 Railway Deployment
+
+1. **Install Railway CLI**
+   ```bash
+   # For Windows
+   scoop bucket add railway https://github.com/railway/scoop-railway
+   scoop install railway
+
+   # For macOS
+   brew install railway
+
+   # For other platforms
+   npm i -g @railway/cli
+   ```
+
+2. **Login to Railway**
+   ```bash
+   railway login
+   ```
+
+3. **Initialize Railway Project**
+   ```bash
+   railway init
+   ```
+
+4. **Add Required Services**
+   - Add PostgreSQL from Railway Dashboard
+   - Add Redis from Railway Dashboard
+
+5. **Configure Environment Variables**
+   ```bash
+   # Set required environment variables
+   railway variables set POSTGRES_DB=signal_zombitx64
+   railway variables set DISCORD_BOT_TOKEN=your_discord_token
+   # Add other required environment variables
+   ```
+
+6. **Deploy Application**
+   ```bash
+   railway up
+   ```
+
+7. **Monitor Deployment**
+   - View logs: `railway logs`
+   - Check status: `railway status`
+   - Open dashboard: `railway open`
+
+Railway will automatically:
+- Build the application using the Dockerfile
+- Set up PostgreSQL and Redis instances
+- Configure environment variables
+- Handle SSL certificates
+- Provide a public URL
 
 ## 📋 Prerequisites
 
