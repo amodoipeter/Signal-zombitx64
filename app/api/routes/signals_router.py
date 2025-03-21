@@ -5,6 +5,10 @@ from sqlalchemy import and_, desc
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 from app.api.deps import get_current_active_user, get_current_superuser
 from app.core.database import get_db
@@ -196,7 +200,8 @@ async def broadcast_signal_to_users(signal: Signal, users: List[User]):
     """Send signal to multiple users via Telegram."""
     for user in users:
         try:
-            await telegram_bot_service.send_signal(user, signal)
+            if user.telegram_chat_id:
+                await telegram_bot_service.send_signal(user, signal)
         except Exception as e:
             logger.error(f"Error sending signal to user {user.id}: {str(e)}")
 
@@ -204,6 +209,7 @@ async def send_signal_updates(signal: Signal, users: List[User]):
     """Send signal updates (TP/SL hits) to users."""
     for user in users:
         try:
-            await telegram_bot_service.send_signal_update(user, signal, signal.status)
+            if user.telegram_chat_id:
+                await telegram_bot_service.send_signal_update(user, signal, signal.status)
         except Exception as e:
             logger.error(f"Error sending signal update to user {user.id}: {str(e)}")
