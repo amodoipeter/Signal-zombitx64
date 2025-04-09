@@ -13,26 +13,15 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 7))  # 7 days
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     
-    # Database
-    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "signal_zombitx64")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
-    DATABASE_URI: Optional[PostgresDsn] = None
+    # Supabase
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
 
-    @validator("DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+    @validator("SUPABASE_URL", "SUPABASE_KEY")
+    def validate_supabase_config(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Supabase URL and Key must be set")
+        return v
     
     # Redis
     REDIS_URL: Optional[str] = os.getenv("REDIS_URL")

@@ -1,32 +1,60 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-from typing import AsyncGenerator
+from supabase import create_client, Client
+from typing import Optional
+from functools import lru_cache
 
 from app.core.config import settings
 
-# Async engine for main application usage
-async_engine = create_async_engine(settings.DATABASE_URI.replace('postgresql://', 'postgresql+asyncpg://'))
-AsyncSessionLocal = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+@lru_cache()
+def get_supabase() -> Client:
+    """
+    Get or create Supabase client instance.
+    Uses lru_cache to maintain a single instance.
+    """
+    return create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
-# Sync engine for compatibility with some libraries
-engine = create_engine(settings.DATABASE_URI)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class Database:
+    def __init__(self):
+        """Initialize Supabase client."""
+        self.client = get_supabase()
 
-Base = declarative_base()
-
-async def init_db():
-    """Initialize database, creating tables if they don't exist."""
-    async with async_engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.drop_all)  # Uncomment for clean start
-        await conn.run_sync(Base.metadata.create_all)
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency for getting async DB session."""
-    async with AsyncSessionLocal() as session:
+    async def execute(self, table: str, query_type: str, data: dict = None,
+                     filters: dict = None) -> Optional[dict]:
+        """
+        Execute database operations.
+        
+        Args:
+            table: Table name
+            query_type: Type of query ('select', 'insert', 'update', 'delete')
+            data: Data for insert/update operations
+            filters: Filter conditions for select/update/delete operations
+        """
         try:
-            yield session
-        finally:
-            await session.close()
-            await session.close()
+            query = self.client.table(table)
+
+            if query_type == 'select':
+                if filters:
+                    for key, value in filters.items():
+                        query = query.eq(key, value)
+                return query.execute()
+
+            elif query_type == 'insert':
+                return query.insert(data).execute()
+
+            elif query_type == 'update':
+                if filters:
+                    for key, value in filters.items():
+                        query = query.eq(key, value)
+                return query.update(data).execute()
+
+            elif query_type == 'delete':
+                if filters:
+                    for key, value in filters.items():
+                        query = query.eq(key, value)
+                return query.delete().execute()
+
+        except Exception as e:
+            print(f"Database error: {str(e)}")
+            raise
+
+# Create database instance
+db = Database()

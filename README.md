@@ -101,12 +101,41 @@ sequenceDiagram
 ## 🚀 Tech Stack
 
 - **Backend**: Python + FastAPI
-- **Database**: PostgreSQL
+- **Database**: Supabase (PostgreSQL)
 - **AI Models**: NumPy, Pandas, TensorFlow/PyTorch
 - **Market Data**: Integration with Binance API
 - **Bots**: Telegram Bot API (aiogram)
 - **Payments**: Stripe API
-- **Deployment**: Docker, Kubernetes, Railway.app
+- **Deployment**: Docker, Kubernetes, Supabase
+
+## 🗄️ Setting up Supabase
+
+1. **Create Supabase Project**
+   - Go to [Supabase Dashboard](https://app.supabase.io)
+   - Create a new project
+   - Get your project URL and anon/public key
+
+2. **Setup Environment Variables**
+   ```bash
+   # Database
+   SUPABASE_URL=your_project_url
+   SUPABASE_KEY=your_anon_key
+   ```
+
+3. **Run Database Migrations**
+   ```bash
+   # Install Supabase CLI
+   npm install -g supabase-cli
+
+   # Login to Supabase
+   supabase login
+
+   # Link your project
+   supabase link --project-ref your-project-ref
+
+   # Run migrations
+   supabase db push
+   ```
 
 ## 🚂 Railway Deployment
 
@@ -171,28 +200,57 @@ Railway will automatically:
 - Stripe API Key
 
 ## 🛠️ Installation
-
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/Signal-zombitx64.git
-   cd Signal-zombitx64
-   ```
+    ```bash
+    git clone https://github.com/yourusername/Signal-zombitx64.git
+    cd Signal-zombitx64
+    ```
 
 2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env file with your configuration
-   ```
+    ```bash
+    cp .env.example .env
+    # Add your Supabase URL and key to .env file
+    ```
 
-3. **Run with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
+3. **Set up Python environment**
+    ```bash
+    # Create virtual environment
+    python -m venv venv
+    
+    # Activate virtual environment
+    # Windows
+    .\venv\Scripts\activate
+    # Linux/Mac
+    source venv/bin/activate
+    
+    # Install dependencies
+    pip install -r requirements.txt
+    ```
 
-4. **Alternatively, install dependencies and run locally**
-   ```bash
-   pip install -r requirements.txt
-   uvicorn app.main:app --reload
+4. **Run Database Migrations**
+    ```bash
+    # Run migrations through Supabase CLI
+    supabase db push
+    ```
+
+5. **Run the application**
+    ```bash
+    # Development
+    uvicorn app.main:app --reload
+    
+    # Production
+    uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ```
+
+6. **Docker Support**
+    ```bash
+    # Build and run with Docker
+    docker build -t signal-zombitx64 .
+    docker run -p 8000:8000 signal-zombitx64
+    
+    # Or using Docker Compose
+    docker-compose up -d
+    ```
    ```
 
 ## 📝 API Documentation
