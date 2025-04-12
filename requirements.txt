@@ -27,7 +27,7 @@ stripe>=7.0.0
 streamlit>=1.26.0
 plotly>=5.16.1
 matplotlib>=3.7.2
-mplfinance>=0.12.10
+#mplfinance>=0.12.10
 
 # Utilities
 python-dotenv>=1.0.0
